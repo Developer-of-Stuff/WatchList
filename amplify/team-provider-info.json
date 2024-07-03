@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-watchlist-dev-220847-authRole",
+      "UnauthRoleArn": "arn:aws:iam::968888722723:role/amplify-watchlist-dev-220847-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::968888722723:role/amplify-watchlist-dev-220847-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-watchlist-dev-220847-deployment",
+      "UnauthRoleName": "amplify-watchlist-dev-220847-unauthRole",
+      "StackName": "amplify-watchlist-dev-220847",
+      "StackId": "arn:aws:cloudformation:us-east-1:968888722723:stack/amplify-watchlist-dev-220847/2fb9af70-38e1-11ef-a0c9-1271d20b1065",
+      "AmplifyAppId": "d1xuxybecxcngu"
+    },
+    "categories": {
+      "auth": {
+        "watchlista841ba75": {}
+      }
+    }
+  }
+}
