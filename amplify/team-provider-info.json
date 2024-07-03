@@ -14,6 +14,9 @@
     "categories": {
       "auth": {
         "watchlista841ba75": {}
+      },
+      "api": {
+        "watchlist": {}
       }
     }
   }

@@ -1,0 +1,12 @@
+type Media @model @auth(rules: [{ allow: private, provider: userPools }]) {
+  id: ID!
+  name: String!
+  medium: Medium!
+  creatorId: ID!
+  watched: Boolean!
+}
+
+enum Medium {
+  MOVIE
+  SHOW
+}
