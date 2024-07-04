@@ -4,7 +4,8 @@ import * as mutations from './graphql/mutations';
 import * as queries from './graphql/queries';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import { useEffect, useState } from 'react';
-import '@aws-amplify/ui-react/styles.css';
+// import '@aws-amplify/ui-react/styles.css';
+import './App.css';
 import config from './amplifyconfiguration.json';
 Amplify.configure(config);
 
@@ -86,6 +87,12 @@ function createEntries(mediaEntries) {
     }
   };
 
+  const handleUpdate = async (e) => {
+    const target = e.target;
+    const entryId = target.parentNode.parentNode.id;
+
+  };
+
   const handleDelete = async (e) => {
     const target = e.target;
     const entryId = target.parentNode.parentNode.id;
@@ -109,11 +116,11 @@ function createEntries(mediaEntries) {
         <li className='entry entry-watched'>
           {mediaEntries[i].watched ? wasWatched : notWatched}
         </li>
-        <li className='btn update-btn'>
-          <button>Update Item</button>
+        <li>
+          <button className='btn update-btn'>Update Item</button>
         </li>
-        <li className='btn delete-btn'>
-          <button onClick={handleDelete}>Delete Item</button>
+        <li>
+          <button className='btn delete-btn' onClick={handleDelete}>Delete Item</button>
         </li>
       </ul>
     );
@@ -168,32 +175,41 @@ function App({ signOut, user }) {
   return (
     <div className='app-container'>
       <div className='body'>
-        <div className='header'>
+        <div className='header border-bottom'>
           <h1>
             <a href="#">Watch List</a>
           </h1>
+          <nav>
+            <ul>
+              <li><a href='#'>Home</a></li>
+              <li><a href='#'>About</a></li>
+            </ul>
+          </nav>
         </div>
         <div className='main'>
-          <p>Welcome, {user.signInDetails.loginId}!</p>
-          <button onClick={signOut}>Sign out</button>
-          <hr/>
-          <h2>Media Entry</h2>
-          <form className='user-input' id='media-form' onSubmit={formSubmit}>
-            <label htmlFor='title'>Title:</label>
-            <input className='text-input' id='form-title' name='title' type='text'/>
-            <label htmlFor='medium'>Type:</label>
-            <select className='dropdown-input' id='form-medium' name='medium'>
-              <option value='movie'>Movie</option>
-              <option value='show'>Show</option>
-            </select>
-            <button className='btn' type='submit' id='form-submit'>Submit</button>
-          </form>
-          <hr/>
-          <div className='entries'>
+          <div className='section border-bottom'>
+            <h2>Welcome, {user.signInDetails.loginId}!</h2>
+            <button className='btn' onClick={signOut}>Sign out</button>
+          </div>
+          <div className='section border-bottom'>
+            <h2>Media Entry</h2>
+            <form className='user-input' id='media-form' onSubmit={formSubmit}>
+              <label htmlFor='title'>Title:</label>
+              <input className='text-input' id='form-title' name='title' type='text'/>
+              <label htmlFor='medium'>Type:</label>
+              <select className='dropdown-input' id='form-medium' name='medium'>
+                <option value='movie'>Movie</option>
+                <option value='show'>Show</option>
+              </select>
+              <button className='btn' type='submit' id='form-submit'>Submit</button>
+            </form>
+          </div>
+          <div className='section border-bottom'>
+            <h2>Entries</h2>
             {entries}
           </div>
         </div>
-        <div className='footer'>
+        <div className='section footer'>
           <p>&copy; Watch List 2024</p>
         </div>
       </div>
