@@ -108,21 +108,21 @@ function createEntries(mediaEntries) {
     const wasWatched = <input type='checkbox' onClick={handleCheck} defaultChecked />
     const notWatched = <input type='checkbox' onClick={handleCheck}/>
     entries.push(
-      <ul key={i} id={mediaEntries[i].id}>
-        <li className='entry entry-name'>{mediaEntries[i].name}</li>
-        <li className='entry entry-medium'>{mediaEntries[i].medium}</li>
-        <li className='entry entry-createdAt'>{mediaEntries[i].createdAt}</li>
-        <li className='entry entry-creatorId'>{mediaEntries[i].creatorId}</li>
-        <li className='entry entry-watched'>
+      <tr key={i} id={mediaEntries[i].id}>
+        <td className='entry entry-name'>{mediaEntries[i].name}</td>
+        <td className='entry entry-medium'>{mediaEntries[i].medium}</td>
+        <td className='entry entry-createdAt'>{mediaEntries[i].createdAt}</td>
+        <td className='entry entry-creatorId'>{mediaEntries[i].creatorId}</td>
+        <td className='entry entry-watched'>
           {mediaEntries[i].watched ? wasWatched : notWatched}
-        </li>
-        <li>
+        </td>
+        <td>
           <button className='btn update-btn'>Update Item</button>
-        </li>
-        <li>
+        </td>
+        <td>
           <button className='btn delete-btn' onClick={handleDelete}>Delete Item</button>
-        </li>
-      </ul>
+        </td>
+      </tr>
     );
   }
 
@@ -206,7 +206,22 @@ function App({ signOut, user }) {
           </div>
           <div className='section border-bottom'>
             <h2>Entries</h2>
-            {entries}
+            <table>
+              <thead>
+                <tr>
+                  <td>Title</td>
+                  <td>Type</td>
+                  <td>Creation Time</td>
+                  <td>Creator</td>
+                  <td>Watched</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </thead>
+              <tbody>
+                {entries}
+              </tbody>
+            </table>
           </div>
         </div>
         <div className='section footer'>
