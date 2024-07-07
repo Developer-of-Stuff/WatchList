@@ -10,6 +10,7 @@ import config from './amplifyconfiguration.json';
 Amplify.configure(config);
 
 const appsyncClient = generateClient();
+let numEntries = 0;
 
 async function retrieveEntries() {
   const entriesList = await appsyncClient.graphql({
@@ -34,12 +35,14 @@ async function addEntry(formDataObj, user) {
   });
 
   console.log(addMediaResult);
+  return addMediaResult.data.createMedia;
 }
 
 async function updateEntry(id, watched, formDataObj=null) {
   let input;
 
   if (formDataObj) {
+    console.log(`formDataObj`)
     input = {
       id: id,
       name: formDataObj.title,
@@ -76,13 +79,14 @@ async function deleteEntry(id) {
   console.log(deleteMediaResult);
 }
 
-function createEntries(mediaEntries) {
+function createEntry(entry, index) {
   const entries = [];
   const handleCheck = async (e) => {
     const target = e.target;
     const entryId = target.parentNode.parentNode.id;
     try {
-      await updateEntry(entryId, target.checked);
+      const updateEntryResult = await updateEntry(entryId, target.checked);
+      console.log(`updateEntry result: ${updateEntryResult}`)
     } catch (error) {
       console.error(error);
     }
@@ -95,7 +99,6 @@ function createEntries(mediaEntries) {
   };
 
   const handleDelete = async (e) => {
-    const target = e.target;
     const targetBtnRow = e.target.parentNode.parentNode;
     const targetInfoRow = targetBtnRow.previousSibling;
     const entryId = targetInfoRow.id;
@@ -103,31 +106,40 @@ function createEntries(mediaEntries) {
       await deleteEntry(entryId);
       targetInfoRow.remove();
       targetBtnRow.remove();
+      numEntries--;
     } catch (error) {
       console.error(error);
     }
   };
 
+  const wasWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked />
+  const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck}/>
+  entries.push(
+    <tr key={index + "-info"} className='hover-color' id={entry.id}>
+      <td className='entry'>{entry.name}</td>
+      <td className='entry'>{entry.medium}</td>
+      <td className='entry'>{(new Date(entry.createdAt)).toString()}</td>
+      <td className='entry'>{entry.creatorName}</td>
+      <td className='entry'>{entry.watched ? wasWatched : notWatched}</td>
+    </tr>
+  );
+  entries.push(
+    <tr key={index + "-btns"} id={entry.id + "-btns"}>
+      <td colSpan={5}>
+        <button className='btn op-btn'>Update Item</button>
+        <button className='btn op-btn' onClick={handleDelete}>Delete Item</button>
+      </td>
+    </tr>
+  )
+
+  return entries;
+}
+
+function createEntries(mediaEntries) {
+  const entries = [];
+
   for (let i = 0; i < mediaEntries.length; i++) {
-    const wasWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked />
-    const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck}/>
-    entries.push(
-      <tr key={i + "-info"} className='hover-color' id={mediaEntries[i].id}>
-        <td className='entry'>{mediaEntries[i].name}</td>
-        <td className='entry'>{mediaEntries[i].medium}</td>
-        <td className='entry'>{(new Date(mediaEntries[i].createdAt)).toString()}</td>
-        <td className='entry'>{mediaEntries[i].creatorName}</td>
-        <td className='entry'>{mediaEntries[i].watched ? wasWatched : notWatched}</td>
-      </tr>
-    );
-    entries.push(
-      <tr key={i + "-btns"} id={mediaEntries[i].id + "-btns"}>
-        <td colSpan={5}>
-          <button className='btn op-btn'>Update Item</button>
-          <button className='btn op-btn' onClick={handleDelete}>Delete Item</button>
-        </td>
-      </tr>
-    )
+    entries.push(createEntry(mediaEntries[i], i));
   }
 
   return entries;
@@ -142,6 +154,7 @@ function App({ signOut, user }) {
     document.title = "Watch List";
     async function loadEntries() {
       const entries = (await retrieveEntries()).items;
+      numEntries = entries.length;
       setEntries(createEntries(entries));
       console.log("Loaded entries")
     }
@@ -164,11 +177,10 @@ function App({ signOut, user }) {
 
     else {
       try {
-        await addEntry(formDataObj, user);
-        
-        const newEntries = (await retrieveEntries()).items;
-
-        setEntries(() => createEntries(newEntries));
+        const newEntry = createEntry(await addEntry(formDataObj, user), numEntries+1);
+        const newEntries = [...entries, newEntry];
+        setEntries(() => newEntries);
+        numEntries++;
       } catch (error) {
         console.error(error);
       }
@@ -193,7 +205,7 @@ function App({ signOut, user }) {
         <div className='main'>
           <div className='space-btwn-flex section border-bottom'>
             <h2>Welcome, {user.signInDetails.loginId}!</h2>
-            <button className='btn' onClick={signOut}>Sign out</button>
+            <button className='btn' onClick={signOut}>Sign Out</button>
           </div>
           <div className='section border-bottom'>
             <h2>Media Entry</h2>
