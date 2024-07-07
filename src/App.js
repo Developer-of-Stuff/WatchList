@@ -116,16 +116,16 @@ function createEntry(entry, index) {
   const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck}/>
   entries.push(
     <tr key={index + "-info"} className='hover-color' id={entry.id}>
-      <td className='entry'>{entry.name}</td>
-      <td className='entry'>{entry.medium}</td>
-      <td className='entry'>{(new Date(entry.createdAt)).toString()}</td>
-      <td className='entry'>{entry.creatorName}</td>
-      <td className='entry'>{entry.watched ? wasWatched : notWatched}</td>
+      <td className='entry' colSpan={2}>{entry.name}</td>
+      <td className='entry' colSpan={1}>{entry.medium}</td>
+      <td className='entry' colSpan={1}>{(new Date(entry.createdAt)).toDateString()}</td>
+      <td className='entry' colSpan={1}>{entry.creatorName}</td>
+      <td className='entry' colSpan={1}>{entry.watched ? wasWatched : notWatched}</td>
     </tr>
   );
   entries.push(
     <tr key={index + "-btns"} id={entry.id + "-btns"}>
-      <td colSpan={5}>
+      <td colSpan={6}>
         <button className='btn op-btn'>Update Item</button>
         <button className='btn op-btn' onClick={handleDelete}>Delete Item</button>
       </td>
@@ -225,7 +225,7 @@ function App({ signOut, user }) {
             <table id='entry-table'>
               <thead>
                 <tr>
-                  <td>Title</td>
+                  <td colSpan={2}>Title</td>
                   <td>Type</td>
                   <td>Creation Time</td>
                   <td>Creator</td>
