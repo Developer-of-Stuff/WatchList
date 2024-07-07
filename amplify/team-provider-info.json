@@ -12,11 +12,11 @@
       "AmplifyAppId": "d1xuxybecxcngu"
     },
     "categories": {
-      "auth": {
-        "watchlista841ba75": {}
-      },
       "api": {
         "watchlist": {}
+      },
+      "auth": {
+        "watchlistauthresource": {}
       }
     }
   }

@@ -212,7 +212,7 @@ function App({ signOut, user }) {
             <h2>Entries</h2>
             <table id='entry-table'>
               <thead>
-                <tr className='center-text'>
+                <tr>
                   <td>Title</td>
                   <td>Type</td>
                   <td>Creation Time</td>

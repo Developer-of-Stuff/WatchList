@@ -125,6 +125,7 @@ input, label {
 
 thead td {
     font-weight: bold;
+    padding: 0 5px;
 }
 
 ul {

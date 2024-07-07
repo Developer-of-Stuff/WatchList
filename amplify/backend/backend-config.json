@@ -7,7 +7,7 @@
             "UserPoolId"
           ],
           "category": "auth",
-          "resourceName": "watchlista841ba75"
+          "resourceName": "watchlistauthresource"
         }
       ],
       "output": {
@@ -16,7 +16,7 @@
           "defaultAuthentication": {
             "authenticationType": "AMAZON_COGNITO_USER_POOLS",
             "userPoolConfig": {
-              "userPoolId": "authwatchlista841ba75"
+              "userPoolId": "authwatchlistauthresource"
             }
           }
         }
@@ -26,7 +26,7 @@
     }
   },
   "auth": {
-    "watchlista841ba75": {
+    "watchlistauthresource": {
       "customAuth": false,
       "dependsOn": [],
       "frontendAuthConfig": {
@@ -38,13 +38,9 @@
           "passwordPolicyCharacters": [],
           "passwordPolicyMinLength": 8
         },
-        "signupAttributes": [
-          "EMAIL"
-        ],
+        "signupAttributes": [],
         "socialProviders": [],
-        "usernameAttributes": [
-          "EMAIL"
-        ],
+        "usernameAttributes": [],
         "verificationMechanisms": [
           "EMAIL"
         ]
