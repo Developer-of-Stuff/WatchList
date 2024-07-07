@@ -4,7 +4,7 @@ import * as mutations from './graphql/mutations';
 import * as queries from './graphql/queries';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import { useEffect, useState } from 'react';
-// import '@aws-amplify/ui-react/styles.css';
+import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 import config from './amplifyconfiguration.json';
 Amplify.configure(config);
@@ -27,6 +27,7 @@ async function addEntry(formDataObj, user) {
         name: formDataObj.title,
         medium: formDataObj.medium === 'movie' ? 'MOVIE' : 'SHOW',
         creatorId: user.username,
+        creatorName: user.signInDetails.loginId,
         watched: false
       }
     }
@@ -95,35 +96,38 @@ function createEntries(mediaEntries) {
 
   const handleDelete = async (e) => {
     const target = e.target;
-    const entryId = target.parentNode.parentNode.id;
+    const targetBtnRow = e.target.parentNode.parentNode;
+    const targetInfoRow = targetBtnRow.previousSibling;
+    const entryId = targetInfoRow.id;
     try {
       await deleteEntry(entryId);
-      target.parentNode.parentNode.remove();
+      targetInfoRow.remove();
+      targetBtnRow.remove();
     } catch (error) {
       console.error(error);
     }
   };
 
   for (let i = 0; i < mediaEntries.length; i++) {
-    const wasWatched = <input type='checkbox' onClick={handleCheck} defaultChecked />
-    const notWatched = <input type='checkbox' onClick={handleCheck}/>
+    const wasWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked />
+    const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck}/>
     entries.push(
-      <tr key={i} id={mediaEntries[i].id}>
-        <td className='entry entry-name'>{mediaEntries[i].name}</td>
-        <td className='entry entry-medium'>{mediaEntries[i].medium}</td>
-        <td className='entry entry-createdAt'>{mediaEntries[i].createdAt}</td>
-        <td className='entry entry-creatorId'>{mediaEntries[i].creatorId}</td>
-        <td className='entry entry-watched'>
-          {mediaEntries[i].watched ? wasWatched : notWatched}
-        </td>
-        <td>
-          <button className='btn update-btn'>Update Item</button>
-        </td>
-        <td>
-          <button className='btn delete-btn' onClick={handleDelete}>Delete Item</button>
-        </td>
+      <tr key={i + "-info"} className='hover-color' id={mediaEntries[i].id}>
+        <td className='entry'>{mediaEntries[i].name}</td>
+        <td className='entry'>{mediaEntries[i].medium}</td>
+        <td className='entry'>{(new Date(mediaEntries[i].createdAt)).toString()}</td>
+        <td className='entry'>{mediaEntries[i].creatorName}</td>
+        <td className='entry'>{mediaEntries[i].watched ? wasWatched : notWatched}</td>
       </tr>
     );
+    entries.push(
+      <tr key={i + "-btns"} id={mediaEntries[i].id + "-btns"}>
+        <td colSpan={5}>
+          <button className='btn op-btn'>Update Item</button>
+          <button className='btn op-btn' onClick={handleDelete}>Delete Item</button>
+        </td>
+      </tr>
+    )
   }
 
   return entries;
@@ -175,47 +179,45 @@ function App({ signOut, user }) {
   return (
     <div className='app-container'>
       <div className='body'>
-        <div className='header border-bottom'>
+        <div className='space-btwn-flex header border-bottom'>
           <h1>
             <a href="#">Watch List</a>
           </h1>
           <nav>
-            <ul>
-              <li><a href='#'>Home</a></li>
-              <li><a href='#'>About</a></li>
+            <ul className='space-btwn-flex'>
+              <li><a className='hover-color' href='#'>Home</a></li>
+              <li><a className='hover-color' href='#'>About</a></li>
             </ul>
           </nav>
         </div>
         <div className='main'>
-          <div className='section border-bottom'>
+          <div className='space-btwn-flex section border-bottom'>
             <h2>Welcome, {user.signInDetails.loginId}!</h2>
             <button className='btn' onClick={signOut}>Sign out</button>
           </div>
           <div className='section border-bottom'>
             <h2>Media Entry</h2>
-            <form className='user-input' id='media-form' onSubmit={formSubmit}>
+            <form id='media-form' onSubmit={formSubmit}>
               <label htmlFor='title'>Title:</label>
-              <input className='text-input' id='form-title' name='title' type='text'/>
+              <input className='test-input' id='form-title' name='title' type='text'/>
               <label htmlFor='medium'>Type:</label>
-              <select className='dropdown-input' id='form-medium' name='medium'>
-                <option value='movie'>Movie</option>
-                <option value='show'>Show</option>
+              <select className='test-input' id='form-medium' name='medium'>
+                <option className='input' value='movie'>Movie</option>
+                <option className='input' value='show'>Show</option>
               </select>
               <button className='btn' type='submit' id='form-submit'>Submit</button>
             </form>
           </div>
           <div className='section border-bottom'>
             <h2>Entries</h2>
-            <table>
+            <table id='entry-table'>
               <thead>
-                <tr>
+                <tr className='center-text'>
                   <td>Title</td>
                   <td>Type</td>
                   <td>Creation Time</td>
                   <td>Creator</td>
                   <td>Watched</td>
-                  <td></td>
-                  <td></td>
                 </tr>
               </thead>
               <tbody>
@@ -224,7 +226,7 @@ function App({ signOut, user }) {
             </table>
           </div>
         </div>
-        <div className='section footer'>
+        <div className='section footer center-text'>
           <p>&copy; Watch List 2024</p>
         </div>
       </div>

@@ -8,6 +8,7 @@ export const getMedia = /* GraphQL */ `
       name
       medium
       creatorId
+      creatorName
       watched
       createdAt
       updatedAt
@@ -27,6 +28,7 @@ export const listMedia = /* GraphQL */ `
         name
         medium
         creatorId
+        creatorName
         watched
         createdAt
         updatedAt

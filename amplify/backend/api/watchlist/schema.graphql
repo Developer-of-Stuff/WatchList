@@ -3,6 +3,7 @@ type Media @model @auth(rules: [{ allow: private, provider: userPools }]) {
   name: String!
   medium: Medium!
   creatorId: ID!
+  creatorName: String!
   watched: Boolean!
 }
 

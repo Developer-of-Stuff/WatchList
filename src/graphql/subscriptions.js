@@ -8,6 +8,7 @@ export const onCreateMedia = /* GraphQL */ `
       name
       medium
       creatorId
+      creatorName
       watched
       createdAt
       updatedAt
@@ -22,6 +23,7 @@ export const onUpdateMedia = /* GraphQL */ `
       name
       medium
       creatorId
+      creatorName
       watched
       createdAt
       updatedAt
@@ -36,6 +38,7 @@ export const onDeleteMedia = /* GraphQL */ `
       name
       medium
       creatorId
+      creatorName
       watched
       createdAt
       updatedAt
