@@ -38,7 +38,7 @@ async function addEntry(formDataObj, user) {
   return addMediaResult.data.createMedia;
 }
 
-async function updateEntry(id, watched, formDataObj=null) {
+async function updateEntry(id, watched, formDataObj = null, name = null, medium = null) {
   let input;
 
   if (formDataObj) {
@@ -48,6 +48,13 @@ async function updateEntry(id, watched, formDataObj=null) {
       name: formDataObj.title,
       medium: formDataObj.medium === 'movie' ? 'MOVIE' : 'SHOW',
       watched: formDataObj.watched
+    }
+  } else if (name && medium) {
+    input = {
+      id: id,
+      name: name,
+      medium: medium,
+      watched: watched
     }
   } else {
     input = {
@@ -93,8 +100,50 @@ function createEntry(entry, index) {
   };
 
   const handleUpdate = async (e) => {
-    const target = e.target;
-    const entryId = target.parentNode.parentNode.id;
+    const targetBtnRow = e.target.parentNode.parentNode;
+    const targetInfoRow = targetBtnRow.previousSibling;
+    const titleEntry = targetInfoRow.firstChild;
+    const typeEntry = targetInfoRow.childNodes[1];
+    const entryId = targetInfoRow.id;
+
+    if (!titleEntry.className.includes("update")) {
+      const titleText = titleEntry.textContent;
+      const newTitleHTML = `<input class='test-input' type='text' value='${titleText}' placeholder='Title' />`;
+      titleEntry.innerHTML = newTitleHTML;
+      titleEntry.className += " update";
+
+      const typeValue = typeEntry.textContent;
+      const newTypeHTML = typeValue === "MOVIE" ?
+        `<select class='test-input'>
+        <option class='input' value='movie' selected>Movie</option>
+        <option class='input' value='show'>Show</option>
+      </select>` :
+        `<select class='test-input'>
+        <option class='input' value='movie'>Movie</option>
+        <option class='input' value='show' selected>Show</option>
+      </select>`;
+      typeEntry.innerHTML = newTypeHTML;
+    } else {
+      const inputTitleChild = titleEntry.firstChild;
+      const inputTitleText = inputTitleChild.value;
+      titleEntry.removeChild(inputTitleChild);
+      titleEntry.textContent = inputTitleText;
+
+      const inputTypeChild = typeEntry.firstChild;
+      const inputTypeValue = inputTypeChild.value;
+      typeEntry.removeChild(inputTypeChild);
+      typeEntry.textContent = inputTypeValue.toUpperCase();
+
+      const watched = targetInfoRow.lastChild.firstChild.checked;
+
+      try {
+        await updateEntry(entryId, watched, null, inputTitleText, inputTypeValue.toUpperCase());
+      } catch (error) {
+        console.error("Failed to update entry:\n", error);
+      }
+
+      titleEntry.className = "entry";
+    }
 
   };
 
@@ -113,7 +162,7 @@ function createEntry(entry, index) {
   };
 
   const wasWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked />
-  const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck}/>
+  const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} />
   entries.push(
     <tr key={index + "-info"} className='hover-color' id={entry.id}>
       <td className='entry' colSpan={2}>{entry.name}</td>
@@ -126,7 +175,7 @@ function createEntry(entry, index) {
   entries.push(
     <tr key={index + "-btns"} id={entry.id + "-btns"}>
       <td colSpan={6}>
-        <button className='btn op-btn'>Update Item</button>
+        <button className='btn op-btn' onClick={handleUpdate}>Update Item</button>
         <button className='btn op-btn' onClick={handleDelete}>Delete Item</button>
       </td>
     </tr>
@@ -147,7 +196,7 @@ function createEntries(mediaEntries) {
 
 
 function App({ signOut, user }) {
-  
+
   const [entries, setEntries] = useState();
 
   useEffect(() => {
@@ -177,7 +226,7 @@ function App({ signOut, user }) {
 
     else {
       try {
-        const newEntry = createEntry(await addEntry(formDataObj, user), numEntries+1);
+        const newEntry = createEntry(await addEntry(formDataObj, user), numEntries + 1);
         const newEntries = [...entries, newEntry];
         setEntries(() => newEntries);
         numEntries++;
@@ -211,7 +260,7 @@ function App({ signOut, user }) {
             <h2>Media Entry</h2>
             <form id='media-form' onSubmit={formSubmit}>
               <label htmlFor='title'>Title:</label>
-              <input className='test-input' id='form-title' name='title' type='text'/>
+              <input className='test-input' id='form-title' name='title' type='text' />
               <label htmlFor='medium'>Type:</label>
               <select className='test-input' id='form-medium' name='medium'>
                 <option className='input' value='movie'>Movie</option>
