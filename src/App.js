@@ -88,79 +88,6 @@ async function deleteEntry(id) {
 
 function createEntry(entry, index) {
   const entries = [];
-  const handleCheck = async (e) => {
-    const target = e.target;
-    const entryId = target.parentNode.parentNode.id;
-    try {
-      const updateEntryResult = await updateEntry(entryId, target.checked);
-      console.log(`updateEntry result: ${updateEntryResult}`)
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleUpdate = async (e) => {
-    const targetBtnRow = e.target.parentNode.parentNode;
-    const targetInfoRow = targetBtnRow.previousSibling;
-    const titleEntry = targetInfoRow.firstChild;
-    const typeEntry = targetInfoRow.childNodes[1];
-    const entryId = targetInfoRow.id;
-
-    if (!titleEntry.className.includes("update")) {
-      const titleText = titleEntry.textContent;
-      const newTitleHTML = `<input class='test-input' type='text' value='${titleText}' placeholder='Title' />`;
-      titleEntry.innerHTML = newTitleHTML;
-      titleEntry.className += " update";
-
-      const typeValue = typeEntry.textContent;
-      const newTypeHTML = typeValue === "MOVIE" ?
-        `<select class='test-input'>
-        <option class='input' value='movie' selected>Movie</option>
-        <option class='input' value='show'>Show</option>
-      </select>` :
-        `<select class='test-input'>
-        <option class='input' value='movie'>Movie</option>
-        <option class='input' value='show' selected>Show</option>
-      </select>`;
-      typeEntry.innerHTML = newTypeHTML;
-    } else {
-      const inputTitleChild = titleEntry.firstChild;
-      const inputTitleText = inputTitleChild.value;
-      titleEntry.removeChild(inputTitleChild);
-      titleEntry.textContent = inputTitleText;
-
-      const inputTypeChild = typeEntry.firstChild;
-      const inputTypeValue = inputTypeChild.value;
-      typeEntry.removeChild(inputTypeChild);
-      typeEntry.textContent = inputTypeValue.toUpperCase();
-
-      const watched = targetInfoRow.lastChild.firstChild.checked;
-
-      try {
-        await updateEntry(entryId, watched, null, inputTitleText, inputTypeValue.toUpperCase());
-      } catch (error) {
-        console.error("Failed to update entry:\n", error);
-      }
-
-      titleEntry.className = "entry";
-    }
-
-  };
-
-  const handleDelete = async (e) => {
-    const targetBtnRow = e.target.parentNode.parentNode;
-    const targetInfoRow = targetBtnRow.previousSibling;
-    const entryId = targetInfoRow.id;
-    try {
-      await deleteEntry(entryId);
-      targetInfoRow.remove();
-      targetBtnRow.remove();
-      numEntries--;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const wasWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked />
   const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} />
   entries.push(
@@ -184,16 +111,90 @@ function createEntry(entry, index) {
   return entries;
 }
 
-function createEntries(mediaEntries) {
-  const entries = [];
-
-  for (let i = 0; i < mediaEntries.length; i++) {
-    entries.push(createEntry(mediaEntries[i], i));
+async function handleCheck(e) {
+  const target = e.target;
+  const entryId = target.parentNode.parentNode.id;
+  try {
+    const updateEntryResult = await updateEntry(entryId, target.checked);
+    console.log(`updateEntry result: ${updateEntryResult}`)
+  } catch (error) {
+    console.error(error);
   }
+}
+
+async function handleUpdate(e) {
+  const updateBtnRow = e.target.parentNode.parentNode;
+  const updateInfoRow = updateBtnRow.previousSibling;
+  const titleEntry = updateInfoRow.firstChild;
+  const typeEntry = updateInfoRow.childNodes[1];
+  const entryId = updateInfoRow.id;
+
+  if (!titleEntry.className.includes("update")) {
+    const titleText = titleEntry.textContent;
+    const newTitleHTML = `<input class='test-input' type='text' value='${titleText}' placeholder='Title' />`;
+    titleEntry.innerHTML = newTitleHTML;
+    titleEntry.className += " update";
+
+    const typeValue = typeEntry.textContent;
+    const newTypeHTML = typeValue === "MOVIE" ?
+      `<select class='test-input'>
+      <option class='input' value='movie' selected>Movie</option>
+      <option class='input' value='show'>Show</option>
+    </select>` :
+      `<select class='test-input'>
+      <option class='input' value='movie'>Movie</option>
+      <option class='input' value='show' selected>Show</option>
+    </select>`;
+    typeEntry.innerHTML = newTypeHTML;
+  } else {
+    const inputTitleChild = titleEntry.firstChild;
+    const inputTitleText = inputTitleChild.value;
+    inputTitleChild.remove();
+    titleEntry.textContent = inputTitleText;
+
+    const inputTypeChild = typeEntry.firstChild;
+    const inputTypeValue = inputTypeChild.value;
+    inputTypeChild.remove();
+    typeEntry.textContent = inputTypeValue.toUpperCase();
+
+    const watched = updateInfoRow.lastChild.firstChild.checked;
+
+    try {
+      await updateEntry(entryId, watched, null, inputTitleText, inputTypeValue.toUpperCase());
+    } catch (error) {
+      console.error("Failed to update entry:\n\n", `Input: ${entryId}, ${watched}, ${inputTitleText}, ${inputTypeValue.toUpperCase()}\n\n`, error);
+    }
+
+    titleEntry.className = "entry";
+  }
+
+}
+
+async function handleDelete(e) {
+  const targetBtnRow = e.target.parentNode.parentNode;
+  const targetInfoRow = targetBtnRow.previousSibling;
+  const entryId = targetInfoRow.id;
+  try {
+    await deleteEntry(entryId);
+    targetInfoRow.remove();
+    targetBtnRow.remove();
+    numEntries--;
+  } catch (error) {
+    console.error("Delete handler error:\n", error);
+  }
+}
+
+function defaultSort(entries) {
+  entries.sort((a, b) => {
+    if (new Date(a.updatedAt) > new Date(b.updatedAt)) {
+      return -1;
+    } else {
+      return 1;
+    }
+  });
 
   return entries;
 }
-
 
 function App({ signOut, user }) {
 
@@ -201,15 +202,28 @@ function App({ signOut, user }) {
 
   useEffect(() => {
     document.title = "Watch List";
+
     async function loadEntries() {
       const entries = (await retrieveEntries()).items;
-      numEntries = entries.length;
-      setEntries(createEntries(entries));
+      const sortedEntries = defaultSort(entries);
+      numEntries = sortedEntries.length;
+      setEntries(createEntries(sortedEntries));
       console.log("Loaded entries")
+    }
+
+    function createEntries(mediaEntries) {
+      const entries = [];
+
+      for (let i = 0; i < mediaEntries.length; i++) {
+        entries.push(createEntry(mediaEntries[i], i));
+      }
+
+      return entries;
     }
 
     loadEntries();
   }, []);
+
 
 
   async function formSubmit(e) {
@@ -227,7 +241,7 @@ function App({ signOut, user }) {
     else {
       try {
         const newEntry = createEntry(await addEntry(formDataObj, user), numEntries + 1);
-        const newEntries = [...entries, newEntry];
+        const newEntries = [newEntry, ...entries];
         setEntries(() => newEntries);
         numEntries++;
       } catch (error) {
@@ -242,12 +256,12 @@ function App({ signOut, user }) {
       <div className='body'>
         <div className='space-btwn-flex header border-bottom'>
           <h1>
-            <a href="#">Watch List</a>
+            <a href="/">Watch List</a>
           </h1>
           <nav>
             <ul className='space-btwn-flex'>
-              <li><a className='hover-color' href='#'>Home</a></li>
-              <li><a className='hover-color' href='#'>About</a></li>
+              <li><a className='hover-color' href='/'>Home</a></li>
+              <li><a className='hover-color' href='/about'>About</a></li>
             </ul>
           </nav>
         </div>
