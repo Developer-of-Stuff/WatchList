@@ -5,6 +5,8 @@ import * as queries from './graphql/queries';
 import * as subscriptions from './graphql/subscriptions';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import { useEffect, useState } from 'react';
+import EntryInfo from './EntryInfo';
+import EntryButtons from './EntryButtons';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 import config from './amplifyconfiguration.json';
@@ -39,7 +41,7 @@ async function addEntry(formDataObj, user) {
   return addMediaResult.data.createMedia;
 }
 
-async function updateEntry(id, watched, formDataObj = null, name = null, medium = null) {
+export async function updateEntry(id, watched, formDataObj = null, name = null, medium = null) {
   let input;
 
   if (formDataObj) {
@@ -74,7 +76,7 @@ async function updateEntry(id, watched, formDataObj = null, name = null, medium 
   console.log(updateMediaResult);
 }
 
-async function deleteEntry(id) {
+export async function deleteEntry(id) {
   const deleteMediaResult = await appsyncClient.graphql({
     query: mutations.deleteMedia,
     variables: {
@@ -87,96 +89,13 @@ async function deleteEntry(id) {
   console.log(deleteMediaResult);
 }
 
-function createEntry(entry, index) {
+function createEntry(entry, inputIndex) {
   const entries = [];
-  const wasWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked />
-  const notWatched = <input className='checkbox' type='checkbox' onClick={handleCheck} />
-  entries.push(
-    <tr key={index + "-info"} className='hover-color' id={entry.id}>
-      <td className='entry' colSpan={2}>{entry.name}</td>
-      <td className='entry' colSpan={1}>{entry.medium}</td>
-      <td className='entry' colSpan={1}>{(new Date(entry.createdAt)).toDateString()}</td>
-      <td className='entry' colSpan={1}>{entry.creatorName}</td>
-      <td className='entry' colSpan={1}>{entry.watched ? wasWatched : notWatched}</td>
-    </tr>
-  );
-  entries.push(
-    <tr key={index + "-btns"} id={entry.id + "-btns"}>
-      <td colSpan={6}>
-        <button className='btn op-btn' onClick={handleLocalUpdate}>Update Item</button>
-        <button className='btn op-btn' onClick={handleLocalDelete}>Delete Item</button>
-      </td>
-    </tr>
-  )
+
+  entries.push(<EntryInfo key={inputIndex + '-info'} entry={entry} index={inputIndex} />);
+  entries.push(<EntryButtons key={inputIndex + '-btns'} />);
 
   return entries;
-}
-
-async function handleCheck(e) {
-  const target = e.target;
-  const entryId = target.parentNode.parentNode.id;
-  try {
-    await updateEntry(entryId, target.checked);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function handleLocalUpdate(e) {
-  const updateBtnRow = e.target.parentNode.parentNode;
-  const updateInfoRow = updateBtnRow.previousSibling;
-  const titleEntry = updateInfoRow.firstChild;
-  const typeEntry = updateInfoRow.childNodes[1];
-  const entryId = updateInfoRow.id;
-
-  if (!titleEntry.className.includes("update")) {
-    const titleText = titleEntry.textContent;
-    const newTitleHTML = `<input class='test-input' type='text' value='${titleText}' placeholder='Title' />`;
-    titleEntry.innerHTML = newTitleHTML;
-    titleEntry.className += " update";
-
-    const typeValue = typeEntry.textContent;
-    const newTypeHTML = typeValue === "MOVIE" ?
-      `<select class='test-input'>
-      <option class='input' value='movie' selected>Movie</option>
-      <option class='input' value='show'>Show</option>
-    </select>` :
-      `<select class='test-input'>
-      <option class='input' value='movie'>Movie</option>
-      <option class='input' value='show' selected>Show</option>
-    </select>`;
-    typeEntry.innerHTML = newTypeHTML;
-  } else {
-    const inputTitleChild = titleEntry.firstChild;
-    const inputTitleText = inputTitleChild.value;
-    inputTitleChild.remove();
-    titleEntry.textContent = inputTitleText;
-
-    const inputTypeChild = typeEntry.firstChild;
-    const inputTypeValue = inputTypeChild.value;
-    inputTypeChild.remove();
-    typeEntry.textContent = inputTypeValue.toUpperCase();
-
-    const watched = updateInfoRow.lastChild.firstChild.checked;
-
-    try {
-      await updateEntry(entryId, watched, null, inputTitleText, inputTypeValue.toUpperCase());
-    } catch (error) {
-      console.error("Failed to update entry:\n\n", `Input: ${entryId}, ${watched}, ${inputTitleText}, ${inputTypeValue.toUpperCase()}\n\n`, error);
-    }
-
-    titleEntry.className = "entry";
-  }
-
-}
-
-async function handleLocalDelete(e) {
-  const entryId = e.target.parentNode.parentNode.previousSibling.id;
-  try {
-    await deleteEntry(entryId);
-  } catch (error) {
-    console.error("Delete handler error:\n", error);
-  }
 }
 
 function defaultSort(entries) {
@@ -227,7 +146,6 @@ function App({ signOut, user }) {
           const newEntry = createEntry(entry, numEntries + 1);
 
           setEntries((entries) => {
-            console.log(entries);
             return [newEntry, ...entries]
           });
           numEntries++;
@@ -243,13 +161,12 @@ function App({ signOut, user }) {
           setEntries((entries) => {
             return entries.map(entry => {
               if (entry[0].props.id === entryId) {
-                console.log(`onUpdateMedia:\n${JSON.stringify(data.onUpdateMedia)}`);
-                return createEntry(data.onUpdateMedia, Number(entry[0].key.split('-')[0]));
+                return createEntry(data.onUpdateMedia);
               } else {
                 return entry;
               }
             })
-          })
+          });
         },
         error: (error) => console.warn(error)
       });
@@ -258,7 +175,6 @@ function App({ signOut, user }) {
       .graphql({ query: subscriptions.onDeleteMedia })
       .subscribe({
         next: ({ data }) => {
-          console.log(data);
           const entryId = data.onDeleteMedia.id;
           setEntries((entries) => {
             return entries.filter((entry) => entry[0].props.id !== entryId)
