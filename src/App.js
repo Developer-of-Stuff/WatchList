@@ -2,6 +2,7 @@ import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from './graphql/mutations';
 import * as queries from './graphql/queries';
+import * as subscriptions from './graphql/subscriptions';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import { useEffect, useState } from 'react';
 import '@aws-amplify/ui-react/styles.css';
@@ -102,8 +103,8 @@ function createEntry(entry, index) {
   entries.push(
     <tr key={index + "-btns"} id={entry.id + "-btns"}>
       <td colSpan={6}>
-        <button className='btn op-btn' onClick={handleUpdate}>Update Item</button>
-        <button className='btn op-btn' onClick={handleDelete}>Delete Item</button>
+        <button className='btn op-btn' onClick={handleLocalUpdate}>Update Item</button>
+        <button className='btn op-btn' onClick={handleLocalDelete}>Delete Item</button>
       </td>
     </tr>
   )
@@ -115,14 +116,13 @@ async function handleCheck(e) {
   const target = e.target;
   const entryId = target.parentNode.parentNode.id;
   try {
-    const updateEntryResult = await updateEntry(entryId, target.checked);
-    console.log(`updateEntry result: ${updateEntryResult}`)
+    await updateEntry(entryId, target.checked);
   } catch (error) {
     console.error(error);
   }
 }
 
-async function handleUpdate(e) {
+async function handleLocalUpdate(e) {
   const updateBtnRow = e.target.parentNode.parentNode;
   const updateInfoRow = updateBtnRow.previousSibling;
   const titleEntry = updateInfoRow.firstChild;
@@ -170,15 +170,10 @@ async function handleUpdate(e) {
 
 }
 
-async function handleDelete(e) {
-  const targetBtnRow = e.target.parentNode.parentNode;
-  const targetInfoRow = targetBtnRow.previousSibling;
-  const entryId = targetInfoRow.id;
+async function handleLocalDelete(e) {
+  const entryId = e.target.parentNode.parentNode.previousSibling.id;
   try {
     await deleteEntry(entryId);
-    targetInfoRow.remove();
-    targetBtnRow.remove();
-    numEntries--;
   } catch (error) {
     console.error("Delete handler error:\n", error);
   }
@@ -222,6 +217,64 @@ function App({ signOut, user }) {
     }
 
     loadEntries();
+
+    const createEntrySub = appsyncClient
+      .graphql({ query: subscriptions.onCreateMedia })
+      .subscribe({
+        next: ({ data }) => {
+          console.log(data);
+          const entry = data.onCreateMedia
+          const newEntry = createEntry(entry, numEntries + 1);
+
+          setEntries((entries) => {
+            console.log(entries);
+            return [newEntry, ...entries]
+          });
+          numEntries++;
+        },
+        error: (error) => console.warn(error)
+      });
+
+    const updateEntrySub = appsyncClient
+      .graphql({ query: subscriptions.onUpdateMedia })
+      .subscribe({
+        next: ({ data }) => {
+          const entryId = data.onUpdateMedia.id;
+          setEntries((entries) => {
+            return entries.map(entry => {
+              if (entry[0].props.id === entryId) {
+                console.log(`onUpdateMedia:\n${JSON.stringify(data.onUpdateMedia)}`);
+                return createEntry(data.onUpdateMedia, Number(entry[0].key.split('-')[0]));
+              } else {
+                return entry;
+              }
+            })
+          })
+        },
+        error: (error) => console.warn(error)
+      });
+
+    const deleteEntrySub = appsyncClient
+      .graphql({ query: subscriptions.onDeleteMedia })
+      .subscribe({
+        next: ({ data }) => {
+          console.log(data);
+          const entryId = data.onDeleteMedia.id;
+          setEntries((entries) => {
+            return entries.filter((entry) => entry[0].props.id !== entryId)
+          });
+          numEntries--;
+          
+          console.log(`Entry ID ${entryId} deleted.`);
+        },
+        error: (error) => console.warn(error)
+      });
+
+      return () => {
+        createEntrySub.unsubscribe();
+        updateEntrySub.unsubscribe();
+        deleteEntrySub.unsubscribe();
+      }
   }, []);
 
 
@@ -240,10 +293,7 @@ function App({ signOut, user }) {
 
     else {
       try {
-        const newEntry = createEntry(await addEntry(formDataObj, user), numEntries + 1);
-        const newEntries = [newEntry, ...entries];
-        setEntries(() => newEntries);
-        numEntries++;
+        await addEntry(formDataObj, user);
       } catch (error) {
         console.error(error);
       }
