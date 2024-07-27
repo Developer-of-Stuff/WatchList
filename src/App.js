@@ -158,10 +158,11 @@ function App({ signOut, user }) {
       .subscribe({
         next: ({ data }) => {
           const entryId = data.onUpdateMedia.id;
+          console.log(`Update to ID: ${data.onUpdateMedia.id}`)
           setEntries((entries) => {
             return entries.map(entry => {
-              if (entry[0].props.id === entryId) {
-                return createEntry(data.onUpdateMedia);
+              if (entry[0].props.entry.id === entryId) {
+                return createEntry(data.onUpdateMedia, entry[0].props.index);
               } else {
                 return entry;
               }
@@ -177,7 +178,8 @@ function App({ signOut, user }) {
         next: ({ data }) => {
           const entryId = data.onDeleteMedia.id;
           setEntries((entries) => {
-            return entries.filter((entry) => entry[0].props.id !== entryId)
+            console.log(entries);
+            return entries.filter((entry) => entry[0].props.entry.id !== entryId)
           });
           numEntries--;
           

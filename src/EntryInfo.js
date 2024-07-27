@@ -13,15 +13,13 @@ export default function EntryInfo(entry) {
         }
       }
 
-    const watched = entry.watched ? <input className='checkbox' type='checkbox' onClick={handleCheck} defaultChecked /> : <input className='checkbox' type='checkbox' onClick={handleCheck} />;
-
     return (
         <tr className='hover-color' id={entry.id}>
             <td className='entry' colSpan={2}>{entry.name}</td>
             <td className='entry' colSpan={1}>{entry.medium}</td>
             <td className='entry' colSpan={1}>{(new Date(entry.createdAt)).toDateString()}</td>
             <td className='entry' colSpan={1}>{entry.creatorName}</td>
-            <td className='entry' colSpan={1}>{watched}</td>
+            <td className='entry' colSpan={1}>{<input className='checkbox' type='checkbox' onClick={handleCheck} checked={entry.watched} onChange={() => null}/>}</td>
         </tr>
     );
   }
