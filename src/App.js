@@ -100,7 +100,7 @@ function createEntry(entry, inputIndex) {
 
 function defaultSort(entries) {
   entries.sort((a, b) => {
-    if (new Date(a.updatedAt) > new Date(b.updatedAt)) {
+    if (new Date(a[0].props.entry.updatedAt) > new Date(b[0].props.entry.updatedAt)) {
       return -1;
     } else {
       return 1;
@@ -119,9 +119,8 @@ function App({ signOut, user }) {
 
     async function loadEntries() {
       const entries = (await retrieveEntries()).items;
-      const sortedEntries = defaultSort(entries);
-      numEntries = sortedEntries.length;
-      setEntries(createEntries(sortedEntries));
+      numEntries = entries.length;
+      setEntries(defaultSort(createEntries(entries)));
       console.log("Loaded entries")
     }
 
@@ -160,13 +159,13 @@ function App({ signOut, user }) {
           const entryId = data.onUpdateMedia.id;
           console.log(`Update to ID: ${data.onUpdateMedia.id}`)
           setEntries((entries) => {
-            return entries.map(entry => {
+            return defaultSort(entries.map(entry => {
               if (entry[0].props.entry.id === entryId) {
                 return createEntry(data.onUpdateMedia, entry[0].props.index);
               } else {
                 return entry;
               }
-            })
+            }))
           });
         },
         error: (error) => console.warn(error)
