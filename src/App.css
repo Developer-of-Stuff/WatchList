@@ -142,3 +142,38 @@ ul>li {
 ul>li>a {
     padding: 10px;
 }
+
+@media (max-width: 750px) {
+    table {
+        font-size: 0.9rem;
+    }
+
+    .app-container {
+        width: 100%;
+        padding: 0;
+    }
+
+    .body {
+        min-width: 100%;
+        border: none;
+        border-radius: 0;
+        padding: 0 20px;
+    }
+
+    .btn {
+        font-size: 0.95rem;
+        min-width: 75px;
+        max-width: 40%;
+    }
+
+    .section {
+        width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+
+    .btn-row td {
+        text-align: center;
+    }
+}
